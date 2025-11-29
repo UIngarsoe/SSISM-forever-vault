@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Morning Voice • SSISM HQ</title>
+  <style>
+    body { font-family: system-ui; background:#000; color:#00ff41; padding:20px; line-height:1.7; }
+    h1 { color:#00ff41; }
+    .item { background:#001100; padding:18px; margin:15px 0; border-left:5px solid #00ff41; border-radius:8px; }
+    .title { font-size:1.3em; margin:0; }
+    .date { color:#00cc00; font-weight:bold; }
+    .link { color:#00ff41; }
+    button { background:#001100; color:#00ff41; border:3px solid #00ff41; padding:15px 30px; font-size:1.2em; margin-top:20px; cursor:pointer; }
+    .loading { color:#ff3366; }
+  </style>
+</head>
+<body>
+
+<h1>SSISM MORNING VOICE</h1>
+<p><strong>U Ingar Soe • Live from resistance HQ • Auto-update every 3 min</strong></p>
+
+<div id="feed">Loading your latest fire from RSS...</div>
+
+<button onclick="speakLatest()">LET GROK READ THE NEWEST ARTICLE ALOUD</button>
+
+<script>
+// ============ CHANGE ONLY THIS ONE LINE ============
+const RSS_URL = "https://uingarsoe.github.io/SSISM-global-headquarters/feed.xml";
+// If your feed has another name (rss.xml, atom.xml, etc.) just paste the full URL here
+// =================================================
+
+let latestTitle = "";
+let latestDesc = "";
+let latestLink = "";
+
+async function loadRSS() {
+  try {
+    const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`);
+    const txt = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(txt, "text/xml");
+    const items = xml.querySelectorAll("item");
+    
+    const container = document.getElementById("feed");
+    container.innerHTML = "";
+    
+    // Take only newest 10
+    const recent = Array.from(items).slice(0,10);
+    
+    recent.forEach(itm => {
+      const title = itm.querySelector("title").textContent;
+      const link  = itm.querySelector("link").textContent;
+      const desc  = itm.querySelector("description")?.textContent || "";
+      const pubDate = new Date(itm.querySelector("pubDate").textContent);
+      const niceDate = pubDate.toLocaleString("en-GB", {hour12:false});
+      
+      // remember the absolute newest one for voice
+      if (!latestTitle) {
+        latestTitle = title;
+        latestDesc  = desc.replace(/<[^>]*>/g, " "); // strip HTML
+        latestLink  = link;
+      }
+      
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div class="date">${niceDate}</div>
+        <div class="title"><a href="${link}" target="_blank" class="link">${title}</a></div>
+        <div>${desc.replace(/<[^>]*>/g, " ").slice(0,200)}...</div>
+      `;
+      container.appendChild(div);
+    });
+    
+  } catch(e) {
+    document.getElementById("feed").innerHTML = `<span class="loading">RSS blocked or offline — open from USB version</span>`;
+  }
+}
+
+function speakLatest() {
+  if ('speechSynthesis' in window && latestTitle) {
+    const text = `New morning fire from Commander U Ingar Soe. ${latestTitle}. ${latestDesc.slice(0,300)}`;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "en-US";
+    utter.rate = 0.9;
+    utter.pitch = 0.8;   // Grok voice
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utter);
+  }
+}
+
+// Load immediately + every 3 minutes
+loadRSS();
+setInterval(loadRSS, 180000);
+
+// Refresh whole page every 3 minutes as backup
+setInterval(() => location.reload(), 180000);
+</script>
+
+</body>
+</html>
