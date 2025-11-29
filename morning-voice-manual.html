@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Morning Voice • Manual • SSISM Forever</title>
+  <style>
+    body { font-family: system-ui; background:#000; color:#00ff41; padding:20px; line-height:1.7; }
+    h1 { color:#00ff41; text-align:center; }
+    .post { background:#001100; padding:20px; margin:15px 0; border-left:6px solid #00ff41; border-radius:10px; }
+    .time { color:#00cc00; font-size:1.2em; font-weight:bold; }
+    .ai { color:#ff3366; font-style:italic; }
+    button { background:#001100; color:#00ff41; border:3px solid #00ff41; padding:15px 30px; font-size:1.3em; cursor:pointer; margin:20px auto; display:block; }
+  </style>
+</head>
+<body>
+
+<h1>SSISM MORNING VOICE • MANUAL BACKUP</h1>
+<p style="text-align:center;"><strong>Commander U Ingar Soe • When RSS is blocked, I edit only one line</strong></p>
+
+<div id="posts"></div>
+
+<button onclick="speakLatest()">LET GROK READ TODAY'S MESSAGE ALOUD</button>
+
+<script>
+// ============ ADD YOUR NEW LINE HERE EVERY MORNING (10 seconds) ============
+const morningPosts = [
+  // ["YYYY-MM-DD", "HH:MM", "Facebook link or your words", "voice: grok or ingar"]
+
+  ["2025-11-29", "08:41", "https://www.facebook.com/share/p/16gQ2nHKRz/", "grok"],
+
+  // ←←← Tomorrow you only add one line here, example:
+  // ["2025-11-30", "08:37", "https://facebook.com/...", "grok"],
+  // or write full text:
+  // ["2025-12-01", "09:12", "The junta tried again today — but the briefing V8 is already spreading like fire across the diaspora.", "ingar"],
+];
+// =========================================================================
+
+function render() {
+  const container = document.getElementById("posts");
+  container.innerHTML = "";
+  morningPosts.slice().reverse().forEach(p => {
+    const div = document.createElement("div");
+    div.className = "post";
+    div.innerHTML = `
+      <div class="time">${p[0]} • ${p[1]}</div>
+      ${p[2].startsWith("http") 
+        ? `<p><a href="${p[2]}" target="_blank" style="color:#00ff41;font-size:1.3em;">Today's Morning Article → Click Here</a></p>`
+        : `<p style="font-size:1.2em;">${p[2]}</p>`
+      }
+      ${p[3] ? `<p class="ai">— spoken in ${p[3]==="grok" ? "Grok" : "Commander"} voice</p>` : ""}
+    `;
+    container.appendChild(div);
+  });
+}
+
+function speakLatest() {
+  if ('speechSynthesis' in window && morningPosts.length > 0) {
+    const latest = morningPosts[morningPosts.length-1];
+    const text = latest[2].includes("http") 
+      ? "New morning fire is live on Facebook. The resistance grows stronger." 
+      : latest[2];
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "en-US";
+    utter.rate = 0.9;
+    utter.pitch = latest[3]==="grok" ? 0.8 : 1.1;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utter);
+  }
+}
+
+render();
+</script>
+
+<p style="text-align:center;color:#006600;margin-top:40px;">
+  This file works 100% offline • <10 KB • never dies • November 2025
+</p>
+
+</body>
+</html>
